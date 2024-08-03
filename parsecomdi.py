@@ -42,14 +42,14 @@ CATEGORY_REGEX = [
     ("Buchungsnotiz", r"(?i:strom)|(?i:wasser)|(?i:heizung)|(?i:fernwaerme)|(?i:abfall)", "Wohnen", "Nebenkosten"),
     ("Buchungsnotiz", rf"(?i:rewe{END_WORD})", "Lebenshaltung", "Lebensmittel"),
     ("Buchungsnotiz", rf"(?i:zara{END_WORD})|(?i:primark)", "Lebenshaltung", "Kleidung / Schuhe"),
-    ("Buchungsnotiz", r"(?i:uebertrag auf)|(?i:ueberweisung auf v\s?isa-kar\s?te)|(?i:summe wochenabrechnung \s?visa)|(?i:summe monatsabrechnung visa)|(?i:Ueberweisung von Girokonto auf Visa-Karte)", "Ausschließen", "Interner Übertrag"),
+    ("Buchungsnotiz", r"(?i:uebertrag auf)|(?i:tagesgeld)|(?i:ueberweisung auf v\s?isa-kar\s?te)|(?i:summe wochenabrechnung \s?visa)|(?i:summe monatsabrechnung visa)|(?i:Ueberweisung von Girokonto auf Visa-Karte)", "Ausschließen", "Interner Übertrag"),
     ("Buchungsnotiz", rf"(?i:wage{END_WORD})|(?i:salary)|(?i:gehalt)|(?i:lohn)|(?i:bezuege )", "Einkommen", "Gehalt"),
     ("Buchungsnotiz", r"(?i:ertraegnisgutschrift)", "Einkommen", "Sparen / Anlegen"),
     ("Buchungsnotiz", r"(?i:bargeldeinzahlung)", "Einkommen", "Bargeldeinzahlung"),
     ("Buchungsnotiz", r"(?i:bargeldauszahlung)", "Sonstige Ausgaben", "Bargeldauszahlung"),
     ("Buchungsnotiz", r"(?i:apotheke)", "Lebenshaltung", "Medikamente"),
     ("Buchungsnotiz", r"(?i:dbvertrieb)", "Verkehrsmittel", "Öffentliche Verkehrsmittel"), # when paying via Paypal
-    ("Buchungsnotiz", r"(?i:ryanair)|(?i:wizz air)|(?i:tarom)|(?i:fluegede)", "Reisen", "Flug / Bahn / Bus / Taxi"), # when paying via Paypal
+    ("Buchungsnotiz", r"(?i:ryanair)|(?i:wizz air)|(?i:tarom)|(?i:fluegede)|(?i:lufthansa)", "Reisen", "Flug / Bahn / Bus / Taxi"), # when paying via Paypal
     ("Buchungsnotiz", r"(?i:hotel)", "Reisen", "Hotel / Unterkunft"), # when paying by VISA
     ("Buchungsnotiz", r"(?i:burger king)", "Freizeit", "Gastronomie"),
     ("Buchungsnotiz", r"(?i:theater)|(?i:eventim)|(?i:fkp scorpio)", "Freizeit", "Unterhaltung / Kino / Kultur"), # when paying by VISA
@@ -93,7 +93,9 @@ def parse_finanzreport(fp):
         nonlocal first_col_line_breaks_y
         nonlocal row_does_not_start_with_date
         if operator != b'TJ' and operator != b'Tj':
+            # not a text chunk
             if operator == b'Tf':
+                # font size chunk, only present in old formats
                 cur_font_size_old_pdf_format = operandargs[1]
             return
         text = pdfdecode(operandargs[0][0] if operator == b'TJ' else operandargs[0])
@@ -236,7 +238,7 @@ def parse_finanzreport(fp):
         print(f"Extracted {len(table.index)} cash flow items in {title} from {fp.name}.")
     return account_tables
 
-def get_parsing_error(table_per_account: dict[DataFrame], filename: str) -> str:
+def get_parsing_error(table_per_account: dict[str, DataFrame], filename: str) -> str:
     if len(table_per_account) != len(ACCOUNT_TITLES):
         return f"{abs(len(table_per_account)-len(ACCOUNT_TITLES))} account titles had no matching table. Please check that parse_finanzreport actually parses all expected ACCOUNT_TITLES from file {filename}."
     if all(table.empty for table in table_per_account.values()):
@@ -295,7 +297,7 @@ if __name__ == '__main__':
     wd = in_dir if in_dir.is_absolute() else getcwd()/in_dir
     collected_tables = []
     for f in wd.glob("**/Finanzreport*.pdf"):
-        table_per_account: dict[DataFrame] = parse_finanzreport(f)
+        table_per_account: dict[str, DataFrame] = parse_finanzreport(f)
         error_message = get_parsing_error(table_per_account, f.name)
         if error_message != "":
             print(error_message)
