@@ -1,8 +1,16 @@
 @echo off
 chcp 1252 >nul
+echo.
+echo Bitte vor der Verwendung diese Datei bearbeiten.
+echo Die nachfolgenden Pfade sollten angepasst werden.
+echo "doscpath" stimmt fast garantiert nicht auf diesem PC.
+echo "pythonexe" und "scriptpath" sollten stimmen, wenn keine benutzerdefinierten Pfade angewendet wurden.
+echo Danach diese Zeilen und die darauffolgenden "pause" / "exit" Befehle löschen.
+pause
+exit
+SET docspath="C:%HOMEPATH%\Documents\Kontoauszuege"
 SET pythonexe="C:%HOMEPATH%\.conda\envs\parse-kontoauszug\python.exe"
-SET scriptpath="C:%HOMEPATH%\parse-kontoauszug\parsecomdi.py"
-SET docspath="C:%HOMEPATH%\Documents\comdirect-finanzreports"
+SET scriptpath="C:%HOMEPATH%\Downloads\parse-kontoauszug\parse-kontoauszug.py"
 SET outname=girokonto.csv
 echo.
 echo Alle Finanzreport-pdfs im Zielordner werden gelesen.
