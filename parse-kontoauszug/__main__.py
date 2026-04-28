@@ -3,14 +3,15 @@ from os import getcwd
 from pathlib import Path
 from typing import Union
 from pandas import DataFrame, to_numeric, concat
-from parsers.comdirect import get_parsing_error, parse_finanzreport
 from numpy import nan
+
+from base import WINDOWS_ENCODING
+from comdirect import get_parsing_error, parse_finanzreport
 
 ACCOUNT_TITLES = ("Girokonto", "Visa-Karte")
 TABLE_HEADERS = ("Buchungstag", "Vorgang", "Auftraggeber", "Buchungstext", "Ausgang")
 IGNORED_SUBHEADERS = ("Valuta", "Umsatztag")
 PRINT_HEADERS = ("Buchungstag (orig)", "Vorgang (orig)", "Auftraggeber (orig)", "Buchungstext (orig)", "Ausgang/Eingang (orig)")
-ENCODING = "cp1252"
 END_WORD = "(?:[^a-zA-Z]|$)"
 CATEGORY_REGEX = [
     ("Vorgang (orig)", r"(?i:wertpapiere)", "Depot", "Kauf / Verkauf"),
@@ -38,7 +39,7 @@ CATEGORY_REGEX = [
     ("Buchungsnotiz", r"(?i:hausgeld)", "Wohnen", "Hausgeld"),
     ("Buchungsnotiz", r"(?i:strom)|(?i:wasser)|(?i:heizung)|(?i:fernwaerme)|(?i:abfall)", "Wohnen", "Nebenkosten"),
     ("Buchungsnotiz", rf"(?i:rewe{END_WORD})", "Lebenshaltung", "Lebensmittel"),
-    ("Buchungsnotiz", rf"(?i:zara{END_WORD})|(?i:primark)", "Lebenshaltung", "Kleidung / Schuhe"),
+    ("Buchungsnotiz", rf"(?i:zara{END_WORD})|(?i:primark)|(?i:Mountain Sports Outlet GmbH)|(?i:Engelhor\s?n Mode GmbH)", "Lebenshaltung", "Kleidung / Schuhe"),
     ("Buchungsnotiz", r"(?i:uebertrag auf)|(?i:tagesgeld)|(?i:ueberweisung auf v\s?isa-kar\s?te)|(?i:summe wochenabrechnung \s?visa)|(?i:summe monatsabrechnung visa)|(?i:Ueberweisung von Girokonto auf Visa-Karte)", "Ausschließen", "Interner Übertrag"),
     ("Buchungsnotiz", rf"(?i:wage{END_WORD})|(?i:salary)|(?i:gehalt)|(?i:lohn)|(?i:bezuege )", "Einkommen", "Gehalt"),
     ("Buchungsnotiz", r"(?i:ertraegnisgutschrift)", "Einkommen", "Sparen / Anlegen"),
@@ -46,11 +47,11 @@ CATEGORY_REGEX = [
     ("Buchungsnotiz", r"(?i:bargeldauszahlung)", "Sonstige Ausgaben", "Bargeldauszahlung"),
     ("Buchungsnotiz", r"(?i:apotheke)", "Lebenshaltung", "Medikamente"),
     ("Buchungsnotiz", r"(?i:dbvertrieb)", "Verkehrsmittel", "Öffentliche Verkehrsmittel"), # when paying via Paypal
-    ("Buchungsnotiz", r"(?i:ryanair)|(?i:wizz air)|(?i:tarom)|(?i:fluegede)|(?i:lufthansa)", "Reisen", "Flug / Bahn / Bus / Taxi"), # when paying via Paypal
+    ("Buchungsnotiz", r"(?i:ryanair)|(?i:wizz air)|(?i:tarom)|(?i:fluegede)|(?i:lufthansa)|(?i:Austrian Airlines AG)|(?i:Luchtvaart Maatschappij)", "Reisen", "Flug / Bahn / Bus / Taxi"), # when paying via Paypal
     ("Buchungsnotiz", r"(?i:hotel)", "Reisen", "Hotel / Unterkunft"), # when paying by VISA
-    ("Buchungsnotiz", r"(?i:burger king)", "Freizeit", "Gastronomie"),
+    ("Buchungsnotiz", r"(?i:burger king)|(?i:rieger gastro)", "Freizeit", "Gastronomie"),
     ("Buchungsnotiz", r"(?i:theater)|(?i:eventim)|(?i:fkp scorpio)", "Freizeit", "Unterhaltung / Kino / Kultur"), # when paying by VISA
-    ("Buchungsnotiz", r"(?i:humblebundl)|(?i:steam\s?games)|(?i:wargaming)", "Freizeit", "Hobbies"), # when paying via Paypal
+    ("Buchungsnotiz", r"(?i:humblebundl)|(?i:steam\s?games)|(?i:stea\s?mpowered)|(?i:wargaming)", "Freizeit", "Hobbies"), # when paying via Paypal
 ]
 
 def prettify_and_enrich_finanzreport(table: DataFrame, filename: str, account_title: str):
@@ -91,7 +92,7 @@ def prettify_and_enrich_finanzreport(table: DataFrame, filename: str, account_ti
 def write_finanzreports(tables: list[DataFrame], outfile: Union["FilePath", "WriteBuffer[bytes]", "WriteBuffer[str]"]):
     print(f"Writing final table from {len(tables)} account tables.")
     table = concat(tables, ignore_index=True)
-    table.to_csv(outfile, sep=";", encoding=ENCODING, index=False)
+    table.to_csv(outfile, sep=";", encoding=WINDOWS_ENCODING, index=False)
                
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Dieses Skript liest Comdirect-Finanzreports im pdf-Format und speichert die Umsätze vom Girokonto in einer CSV-Datei.')

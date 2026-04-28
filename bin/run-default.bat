@@ -3,12 +3,12 @@ chcp 1252 >nul
 echo.
 echo Bitte vor der Verwendung diese Datei bearbeiten.
 echo Die nachfolgenden Pfade sollten angepasst werden.
-echo "doscpath" stimmt fast garantiert nicht auf diesem PC.
+echo "docspath" stimmt fast garantiert nicht auf diesem PC.
 echo "pythonexe" und "scriptpath" sollten stimmen, wenn keine benutzerdefinierten Pfade angewendet wurden.
-echo Danach diese Zeilen und die darauffolgenden "pause" / "exit" Befehle l�schen.
+echo Danach diese Zeilen und die darauffolgenden "pause" / "exit" Befehle löschen.
 pause
 exit
-SET docspath="C:%HOMEPATH%\Documents\Kontoauszuege"
+SET docspath="C:%HOMEPATH%\Documents\Kontoauszüge"
 SET pythonexe="C:%HOMEPATH%\.conda\envs\parse-kontoauszug\python.exe"
 SET scriptpath="C:%HOMEPATH%\Downloads\parse-kontoauszug\parse-kontoauszug\__main__.py"
 SET outname=girokonto.csv
@@ -19,5 +19,5 @@ echo Die Zieldatei %outname% wird im Verzeichnis dieses scripts abgespeichert.
 echo Dateien jetzt lesen?
 pause
 %pythonexe% %scriptpath% -p %docspath% -o %outname%
-echo Vorgang abgeschlossen. Beliebige Taste druecken um zu schliessen.
+echo Vorgang abgeschlossen. Beliebige Taste drücken um zu schließen.
 pause

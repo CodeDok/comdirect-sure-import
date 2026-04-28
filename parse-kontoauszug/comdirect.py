@@ -1,10 +1,10 @@
 import re
-from .. import ENCODING
 from bisect import bisect_right
 from pandas import DataFrame
 from pypdf import PdfReader
 from statistics import median
 
+from base import WINDOWS_ENCODING
 
 ACCOUNT_TITLES = ("Girokonto", "Visa-Karte")
 TABLE_HEADERS = ("Buchungstag", "Vorgang", "Auftraggeber", "Buchungstext", "Ausgang")
@@ -17,7 +17,7 @@ def get_parsing_error(table_per_account: dict[str, DataFrame], filename: str) ->
     if all(table.empty for table in table_per_account.values()):
         return f"No transactions found in {filename}. Please check if this is an error."
     if any([not table.empty and len(table.columns) != len(TABLE_HEADERS) for table in table_per_account.values()]):
-        return f"At least one table in {filename} does not have exactly one column per expected header. Please check why."
+        return f"At least one table in {filename} does not have exactly one column per expected header. Please check why. Found columns: {[table.columns for table in table_per_account.values()]}"
     return ""
 
 
@@ -37,6 +37,7 @@ def parse_finanzreport(fp):
     account_tables = {title:DataFrame() for title in ACCOUNT_TITLES}
     active_account = ""
     header_xcoords = {title:[] for title in ACCOUNT_TITLES}
+    seen_header_texts = []
     end_signal_1_seen = False
     first_header = 0
     prev_col = 0.
@@ -79,6 +80,7 @@ def parse_finanzreport(fp):
             cur_row_y = 10000000.
             cur_row = 0
             row_does_not_start_with_date = True
+            #print(f"account active: {active_account}")
             return
         # Skip until title was seen
         if not active_account:
@@ -89,9 +91,13 @@ def parse_finanzreport(fp):
         # Handle table headers
         if is_table_header(text):
             header_x = x if not is_last_table_header(text) else x - LAST_HEADER_LEEWAY
-            if header_x not in headers:
+            if header_x not in headers and text not in seen_header_texts:
                 headers.append(header_x)
+                seen_header_texts.append(text)
                 headers = sorted(headers)
+                #print(f"updated headers with {text} at {header_x}")
+            #else:
+                #print(f"found header again: {text} at {header_x}")
             if is_first_table_header(text):
                 first_header = x
                 cur_row_y = y
@@ -135,7 +141,6 @@ def parse_finanzreport(fp):
         if row_does_not_start_with_date:
             unassignable_parts.append(text)
             return
-        #print(int(column), int(prev_col), len(headers), text)
         if column == prev_col:
             table.at[cur_row, column] = f"{table.loc[cur_row, column]} {text}"
         else:
@@ -143,7 +148,7 @@ def parse_finanzreport(fp):
         prev_col = column
 
     def pdfdecode(byteslist):
-        return byteslist.decode(ENCODING)
+        return byteslist.decode(WINDOWS_ENCODING)
 
     def find_closest_header(text_x, header_xcoords):
         # E.g. if headers = [1,3,7], a text chunk with x=5 would be in the second column, or headers[1].
