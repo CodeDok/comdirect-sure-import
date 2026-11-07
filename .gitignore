@@ -1,3 +1,8 @@
-*/__pycache__/*
+__pycache__/
+.venv/
 .vscode/
-bin/run-default-customised.bat
+sure-import.csv
+
+# Lokale Beispieldateien / persönliche Daten – bleiben untracked
+*.pdf
+*.csv

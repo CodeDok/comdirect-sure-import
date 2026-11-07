@@ -1,7 +1,0 @@
-name: parse-kontoauszug
-channels:
-  - conda-forge
-dependencies:
-  - python>3.0
-  - pandas
-  - pypdf

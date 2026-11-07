@@ -1,0 +1,12 @@
+[project]
+name = "comdirect-sure-import"
+version = "0.1.0"
+description = "Wandelt comdirect-Finanzreports (PDF, 2020-2026) in eine Sure-Finance-CSV um."
+requires-python = ">=3.10"
+dependencies = [
+    "pandas",
+    "pypdf",
+]
+
+[tool.uv]
+package = false
